@@ -17,15 +17,33 @@ namespace ÄventyrligaKontakter
             get { return _service ?? (_service = new Service()); }
         }
 
+        private string Message
+        {
+            get
+            {
+                return Session["Message"] as string;
+            }
+            set
+            {
+                Session["Message"] = value;
+            }
+        }
+
 
         protected void Page_Load(object sender, EventArgs e)
         {
 
+            if (Message != null)
+            {
+                MessagePanel.Visible = true;
+                SuccessLabel.Text = Message;
+                Session.Remove("Message");
+            }
         }
 
-        public IEnumerable<Contact> ContactListView_GetData()
+        public IEnumerable<Contact> ContactListView_GetData(int maximumRows, int startRowIndex, out int totalRowCount)
         {
-            return Service.GetContacts();
+            return Service.GetContactsPageWise(maximumRows, startRowIndex, out totalRowCount);
         }
 
         public void ContactListView_DeleteItem(int contactId)
@@ -47,6 +65,8 @@ namespace ÄventyrligaKontakter
                 try
                 {
                     Service.SaveContact(contact);
+                    Message = String.Format("'{0} {1}' har lagts till", contact.FirstName, contact.LastName);
+                    Response.Redirect("~/");
                 }
                 catch (Exception)
                 {
@@ -76,5 +96,15 @@ namespace ÄventyrligaKontakter
                 ModelState.AddModelError(String.Empty, "Ett oväntat fel inträffade då kontaktuppgiften skulle uppdateras.");
             }
         }
+
+        protected void ImageCloseButton_Click(object sender, ImageClickEventArgs e)
+        {
+            MessagePanel.Visible = false;
+        }
+
+
+
+
+
     }
 }

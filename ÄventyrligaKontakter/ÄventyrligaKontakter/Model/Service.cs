@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Web;
 using ÄventyrligaKontakter.Model.DAL;
@@ -22,6 +23,14 @@ namespace ÄventyrligaKontakter.Model
 
         public void SaveContact(Contact contact)
         {
+            ICollection<ValidationResult> validationResults;
+            if (!contact.Validate(out validationResults))
+            {
+                var ex = new ValidationException("Kontaktobjektet klarade inte datavalideringen.");
+                ex.Data.Add("ValidationResults", validationResults);
+                throw ex;
+            }
+
             if (contact.ContactId == 0)
             {
                 ContactDAL.InsertContact(contact);
@@ -42,6 +51,10 @@ namespace ÄventyrligaKontakter.Model
             return ContactDAL.GetContactById(contactId);
         }
 
+        public IEnumerable<Contact> GetContactsPageWise(int maximumRows, int startRowIndex, out int totalRowCount)
+        {
+            return ContactDAL.GetContactsPageWise(maximumRows, startRowIndex, out totalRowCount);
+        }
         
     }
 }
